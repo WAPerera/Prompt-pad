@@ -42,8 +42,9 @@ To stay safe, only download installers from this repository's **Releases** page.
 - Prompts and folders are stored locally in the app's WebView2 `localStorage`
   (key `prompt-pad:data:v1`).
 - No accounts, no telemetry, no analytics, no tracking.
-- The only network request the app makes on its own is checking GitHub Releases for
-  updates, and only when you press **Check for updates** in Settings.
+- The only network requests the app makes on its own are the startup update check and a
+  check when you press **Check for updates** in Settings; both query GitHub Releases. The
+  **Buy me a coffee** button only opens your browser when clicked.
 - Export and import write only to the file you explicitly pick in the file dialog.
 - The automatic pre-import backup is written to local storage on your device, never uploaded.
 
@@ -52,10 +53,14 @@ To stay safe, only download installers from this repository's **Releases** page.
 - Search across quick prompts and folders as you type.
 - Create prompts either as quick prompts or inside a folder; create folders inline.
 - Edit titles and bodies with changes saved as you type.
+- Rename or delete prompts and folders from the row menu (`⋯` or right-click).
+  Deleting a folder moves its prompts to Quick prompts so nothing is lost.
+- Drag folders by their header to reorder them.
 - One-click copy, and delete with the trash icon.
 - Export / import backups from **Settings**, with validation and an automatic local
   snapshot before an import replaces your data.
-- Optional in-app updates from GitHub Releases.
+- In-app updates from GitHub Releases, with a small notification bubble when a new
+  version is found at startup.
 - Frameless window with a custom title bar and working minimize / close buttons.
 
 ## Build from source

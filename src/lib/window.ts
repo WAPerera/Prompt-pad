@@ -1,8 +1,5 @@
 import type { Window } from "@tauri-apps/api/window";
-
-function isTauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
+import { isTauri } from "./tauri";
 
 async function withAppWindow(action: (appWindow: Window) => Promise<void>): Promise<void> {
   if (!isTauri()) return;

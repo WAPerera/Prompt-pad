@@ -1,35 +1,22 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { relaunch } from "@tauri-apps/plugin-process";
-import { check, type Update } from "@tauri-apps/plugin-updater";
+import type { Updater } from "../../lib/updates";
 import { DownloadIcon, UploadIcon } from "../icons";
 
 type SettingsProps = {
+  updater: Updater;
   onExport: () => Promise<void>;
   onImport: () => Promise<void>;
   onClose: () => void;
 };
 
-type UpdateStatus =
-  | { kind: "idle" }
-  | { kind: "checking" }
-  | { kind: "latest" }
-  | { kind: "available"; update: Update }
-  | { kind: "installing"; progress: number | null }
-  | { kind: "error"; message: string };
-
-function errorText(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
 const BUTTON_CLASS =
   "flex h-8 items-center gap-1.5 rounded-lg bg-zinc-800/90 px-3 text-xs font-medium text-zinc-200 transition hover:bg-zinc-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-zinc-800/90 disabled:hover:text-zinc-200";
 
 /** Settings view: backup tools and the update check. */
-export function Settings({ onExport, onImport, onClose }: SettingsProps) {
+export function Settings({ updater, onExport, onImport, onClose }: SettingsProps) {
   const [busyAction, setBusyAction] = useState<"export" | "import" | null>(null);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ kind: "idle" });
 
   useEffect(() => {
     let active = true;
@@ -56,49 +43,14 @@ export function Settings({ onExport, onImport, onClose }: SettingsProps) {
   }
 
   async function handleCheckForUpdates() {
-    setUpdateStatus({ kind: "checking" });
-    try {
-      const update = await check();
-      setUpdateStatus(update ? { kind: "available", update } : { kind: "latest" });
-    } catch (error) {
-      setUpdateStatus({ kind: "error", message: errorText(error) });
-    }
+    await updater.checkForUpdates();
   }
 
   async function handleInstallUpdate() {
-    if (updateStatus.kind !== "available") return;
-
-    const { update } = updateStatus;
-    setUpdateStatus({ kind: "installing", progress: null });
-
-    try {
-      let totalBytes = 0;
-      let receivedBytes = 0;
-
-      await update.downloadAndInstall((event) => {
-        if (event.event === "Started") {
-          totalBytes = event.data.contentLength ?? 0;
-        } else if (event.event === "Progress") {
-          receivedBytes += event.data.chunkLength;
-          setUpdateStatus({
-            kind: "installing",
-            progress:
-              totalBytes > 0
-                ? Math.min(100, Math.round((receivedBytes / totalBytes) * 100))
-                : null,
-          });
-        } else {
-          setUpdateStatus({ kind: "installing", progress: 100 });
-        }
-      });
-
-      await relaunch();
-    } catch (error) {
-      setUpdateStatus({ kind: "error", message: errorText(error) });
-    }
+    await updater.installUpdate();
   }
 
-  const updateBusy = updateStatus.kind === "checking" || updateStatus.kind === "installing";
+  const updateBusy = updater.phase === "checking" || updater.phase === "installing";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -160,30 +112,30 @@ export function Settings({ onExport, onImport, onClose }: SettingsProps) {
             onClick={() => void handleCheckForUpdates()}
             className={BUTTON_CLASS}
           >
-            {updateStatus.kind === "checking" ? "Checking…" : "Check for updates"}
+            {updater.phase === "checking" ? "Checking…" : "Check for updates"}
           </button>
-          {updateStatus.kind === "available" ? (
+          {updater.phase === "available" && updater.update ? (
             <button type="button" onClick={() => void handleInstallUpdate()} className={BUTTON_CLASS}>
-              Install {updateStatus.update.version}
+              Install {updater.update.version}
             </button>
           ) : null}
         </div>
 
         <p aria-live="polite" className="mt-2.5 text-[11px] leading-relaxed">
-          {updateStatus.kind === "latest" ? (
+          {updater.phase === "latest" ? (
             <span className="text-zinc-500">You are up to date.</span>
-          ) : updateStatus.kind === "available" ? (
+          ) : updater.phase === "available" && updater.update ? (
             <span className="text-teal-300/90">
-              Version {updateStatus.update.version} is available.
+              Version {updater.update.version} is available.
             </span>
-          ) : updateStatus.kind === "installing" ? (
+          ) : updater.phase === "installing" ? (
             <span className="text-zinc-500">
-              {updateStatus.progress === null
+              {updater.progress === null
                 ? "Downloading update…"
-                : `Downloading update… ${updateStatus.progress}%`}
+                : `Downloading update… ${updater.progress}%`}
             </span>
-          ) : updateStatus.kind === "error" ? (
-            <span className="text-red-400/90">{updateStatus.message}</span>
+          ) : updater.phase === "error" ? (
+            <span className="text-red-400/90">{updater.error}</span>
           ) : (
             <span className="text-zinc-600">Updates are signed and verified automatically.</span>
           )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
+import { UpdateBubble } from "./components/UpdateBubble";
 import { WindowControls } from "./components/WindowControls";
 import { EmptyState } from "./components/views/EmptyState";
 import { NewPrompt } from "./components/views/NewPrompt";
@@ -7,7 +8,9 @@ import { PromptDetail } from "./components/views/PromptDetail";
 import { Settings } from "./components/views/Settings";
 import { createInitialData } from "./lib/data";
 import { exportData, importData } from "./lib/backup";
+import { confirmAction } from "./lib/dialog";
 import { loadData, saveData } from "./lib/storage";
+import { useUpdater } from "./lib/updates";
 import { createId } from "./lib/utils";
 import type { Folder, FolderEntry, Prompt, PromptPadData } from "./types";
 
@@ -25,6 +28,7 @@ export default function App() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const updater = useUpdater();
 
   useEffect(() => {
     saveData(data);
@@ -154,6 +158,77 @@ export default function App() {
     setSelectedPromptId(null);
   }
 
+  function handleDeletePromptById(promptId: string) {
+    setData((current) => ({
+      ...current,
+      prompts: current.prompts.filter((prompt) => prompt.id !== promptId),
+    }));
+    if (selectedPromptId === promptId) setSelectedPromptId(null);
+  }
+
+  function handleRenamePrompt(promptId: string, title: string) {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+
+    setData((current) => ({
+      ...current,
+      prompts: current.prompts.map((prompt) =>
+        prompt.id === promptId ? { ...prompt, title: trimmed } : prompt,
+      ),
+    }));
+  }
+
+  function handleRenameFolder(folderId: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    setData((current) => ({
+      ...current,
+      folders: current.folders.map((folder) =>
+        folder.id === folderId ? { ...folder, name: trimmed } : folder,
+      ),
+    }));
+  }
+
+  async function handleDeleteFolder(folderId: string) {
+    const folder = data.folders.find((entry) => entry.id === folderId);
+    if (!folder) return;
+
+    const confirmed = await confirmAction(
+      `Delete “${folder.name}”?\n\nIts prompts will be moved to Quick prompts, so nothing is lost.`,
+      "Delete folder",
+    );
+    if (!confirmed) return;
+
+    setData((current) => ({
+      folders: current.folders.filter((entry) => entry.id !== folderId),
+      prompts: current.prompts.map((prompt) =>
+        prompt.folderId === folderId ? { ...prompt, folderId: null } : prompt,
+      ),
+    }));
+    setExpandedFolderIds((ids) => ids.filter((id) => id !== folderId));
+  }
+
+  function handleMoveFolder(draggedId: string, targetId: string, before: boolean) {
+    if (draggedId === targetId) return;
+
+    setData((current) => {
+      const from = current.folders.findIndex((folder) => folder.id === draggedId);
+      const to = current.folders.findIndex((folder) => folder.id === targetId);
+      if (from < 0 || to < 0) return current;
+
+      const folders = [...current.folders];
+      const [moved] = folders.splice(from, 1);
+
+      // Removing the dragged folder shifts later targets one slot to the left.
+      let insertAt = to - (from < to ? 1 : 0);
+      if (!before) insertAt += 1;
+
+      folders.splice(insertAt, 0, moved);
+      return { ...current, folders };
+    });
+  }
+
   function handleSelectPrompt(prompt: Prompt) {
     resetDraft();
     setSettingsOpen(false);
@@ -222,9 +297,16 @@ export default function App() {
         onAddFolder={handleStartFolder}
         onSelectPrompt={handleSelectPrompt}
         onSelectFolder={handleSelectFolder}
+        onRenamePrompt={handleRenamePrompt}
+        onDeletePrompt={handleDeletePromptById}
+        onRenameFolder={handleRenameFolder}
+        onDeleteFolder={handleDeleteFolder}
+        onMoveFolder={handleMoveFolder}
         settingsOpen={settingsOpen}
         onOpenSettings={handleOpenSettings}
       />
+
+      <UpdateBubble updater={updater} onOpenSettings={handleOpenSettings} />
 
       <main className="flex h-full min-w-0 flex-1 flex-col">
         <div
@@ -237,6 +319,7 @@ export default function App() {
         <div className="min-h-0 flex-1">
           {settingsOpen ? (
             <Settings
+              updater={updater}
               onExport={handleExport}
               onImport={handleImport}
               onClose={() => setSettingsOpen(false)}
