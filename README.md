@@ -22,9 +22,10 @@ All data stays on your device.
 ## Install
 
 1. Open the [latest release](https://github.com/WAPerera/Prompt-pad/releases/latest).
-2. Download either installer:
-   - `Prompt Pad_<version>_x64-setup.exe` (NSIS, recommended)
-   - `Prompt Pad_<version>_x64_en-US.msi`
+2. Download either installer (file names include the version, e.g.
+   `Prompt.Pad_1.0.0_x64-setup.exe`):
+   - the NSIS `.exe` setup file (recommended)
+   - or the `.msi` package
 3. Run the installer. Administrator rights are not required.
 
 ### This build is unsigned
