@@ -1,6 +1,6 @@
 [package]
 name = "prompt-pad"
-version = "1.2.0"
+version = "1.2.1"
 description = "Prompt Pad — a minimal desktop prompt manager"
 authors = ["Prompt Pad"]
 license = "MIT"

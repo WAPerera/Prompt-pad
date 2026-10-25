@@ -293,7 +293,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden rounded-[20px] border border-zinc-800/80 bg-[#0d0d0f] font-sans text-zinc-300 antialiased selection:bg-teal-400/25 selection:text-white">
+    <div className="flex h-screen w-screen overflow-hidden rounded-[20px] bg-[#0d0d0f] font-sans text-zinc-300 antialiased selection:bg-teal-400/25 selection:text-white">
       <Sidebar
         query={query}
         onQueryChange={setQuery}
