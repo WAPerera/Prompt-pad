@@ -7,6 +7,7 @@ import {
   ChevronRightIcon,
   CoffeeIcon,
   FolderIcon,
+  GripVerticalIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PlusIcon,
@@ -293,6 +294,7 @@ export function Sidebar({
                   </div>
                 ) : (
                   <div
+                    data-folder-row={entry.folder.id}
                     draggable={canReorder}
                     onDragStart={(event) => handleDragStart(event, entry.folder.id)}
                     onDragOver={(event) => handleDragOver(event, entry.folder.id)}
@@ -307,6 +309,15 @@ export function Sidebar({
                       canReorder && "cursor-grab active:cursor-grabbing",
                     )}
                   >
+                    <span
+                      draggable={canReorder}
+                      data-drag-handle
+                      aria-hidden="true"
+                      title={canReorder ? "Drag to reorder" : undefined}
+                      className="ml-1 flex h-6 w-3 shrink-0 cursor-grab items-center justify-center text-zinc-700 opacity-70 transition group-hover:text-zinc-500 group-hover:opacity-100 active:cursor-grabbing"
+                    >
+                      <GripVerticalIcon className="h-3 w-3" />
+                    </span>
                     <button
                       type="button"
                       onClick={() => onSelectFolder(entry.folder)}
@@ -315,7 +326,7 @@ export function Sidebar({
                         setMenuTarget({ kind: "folder", id: entry.folder.id });
                       }}
                       title={canReorder ? "Click to expand, drag to reorder" : undefined}
-                      className="flex min-w-0 flex-1 items-center gap-1.5 py-1.5 pl-1.5 pr-1 text-left text-[13px] text-zinc-400 transition hover:text-zinc-200"
+                      className="flex min-w-0 flex-1 items-center gap-1.5 py-1.5 pl-1 pr-1 text-left text-[13px] text-zinc-400 transition hover:text-zinc-200"
                     >
                       <ChevronRightIcon
                         className={cx(

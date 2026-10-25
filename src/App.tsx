@@ -9,6 +9,7 @@ import { Settings } from "./components/views/Settings";
 import { createInitialData } from "./lib/data";
 import { exportData, importData } from "./lib/backup";
 import { confirmAction } from "./lib/dialog";
+import { moveFolder } from "./lib/folders";
 import { loadData, saveData } from "./lib/storage";
 import { useUpdater } from "./lib/updates";
 import { createId } from "./lib/utils";
@@ -210,22 +211,9 @@ export default function App() {
   }
 
   function handleMoveFolder(draggedId: string, targetId: string, before: boolean) {
-    if (draggedId === targetId) return;
-
     setData((current) => {
-      const from = current.folders.findIndex((folder) => folder.id === draggedId);
-      const to = current.folders.findIndex((folder) => folder.id === targetId);
-      if (from < 0 || to < 0) return current;
-
-      const folders = [...current.folders];
-      const [moved] = folders.splice(from, 1);
-
-      // Removing the dragged folder shifts later targets one slot to the left.
-      let insertAt = to - (from < to ? 1 : 0);
-      if (!before) insertAt += 1;
-
-      folders.splice(insertAt, 0, moved);
-      return { ...current, folders };
+      const folders = moveFolder(current.folders, draggedId, targetId, before);
+      return folders === current.folders ? current : { ...current, folders };
     });
   }
 

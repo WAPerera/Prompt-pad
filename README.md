@@ -23,7 +23,7 @@ All data stays on your device.
 
 1. Open the [latest release](https://github.com/WAPerera/Prompt-pad/releases/latest).
 2. Download either installer (file names include the version, e.g.
-   `Prompt.Pad_1.1.0_x64-setup.exe`):
+   `Prompt.Pad_1.1.1_x64-setup.exe`):
    - the NSIS `.exe` setup file (recommended)
    - or the `.msi` package
 3. Run the installer. Administrator rights are not required.
@@ -108,11 +108,27 @@ npm run tauri build -- --no-bundle
 The frontend can also run in a plain browser with `npm run dev`; Tauri-only features
 (file dialogs, updates, window controls) will not work there.
 
+### Testing
+
+Folder reordering has an isolated jsdom sandbox built on Vitest and React Testing
+Library, so it runs without Tauri or WebView2:
+
+```powershell
+npm test          # single run
+npm run test:watch
+```
+
+Tests live in `tests/` and cover the `moveFolder` reorder logic plus the drag events
+wired up by the sidebar.
+
+> Note: `tauri.conf.json` sets `dragDropEnabled: false` because Tauri's OS file-drop
+> handling otherwise blocks HTML5 drag-and-drop inside the WebView2 window.
+
 ## Releasing
 
 ```powershell
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.1
+git push origin v1.1.1
 ```
 
 The release workflow builds on `windows-latest` and creates a **draft** GitHub Release
