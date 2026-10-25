@@ -23,7 +23,7 @@ All data stays on your device.
 
 1. Open the [latest release](https://github.com/WAPerera/Prompt-pad/releases/latest).
 2. Download either installer (file names include the version, e.g.
-   `Prompt.Pad_1.0.0_x64-setup.exe`):
+   `Prompt.Pad_1.1.0_x64-setup.exe`):
    - the NSIS `.exe` setup file (recommended)
    - or the `.msi` package
 3. Run the installer. Administrator rights are not required.
@@ -111,8 +111,8 @@ The frontend can also run in a plain browser with `npm run dev`; Tauri-only feat
 ## Releasing
 
 ```powershell
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
 The release workflow builds on `windows-latest` and creates a **draft** GitHub Release
