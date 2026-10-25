@@ -1,0 +1,27 @@
+[package]
+name = "prompt-pad"
+version = "1.0.0"
+description = "Prompt Pad — a minimal desktop prompt manager"
+authors = ["Prompt Pad"]
+license = "MIT"
+edition = "2021"
+
+[lib]
+name = "prompt_pad_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[features]
+# Enabled by `tauri build`; also lets `cargo build --release --features custom-protocol`
+# embed the frontend instead of pointing at the dev server.
+custom-protocol = ["tauri/custom-protocol"]
+
+[dependencies]
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Prompt Pad",
+  "version": "1.0.0",
+  "identifier": "io.github.waperera.prompt-pad",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Prompt Pad",
+        "width": 640,
+        "height": 460,
+        "minWidth": 520,
+        "minHeight": 380,
+        "center": true,
+        "resizable": true,
+        "decorations": false,
+        "shadow": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost",
+      "devCsp": "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost ws://localhost:1420"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFBRDdDMzYxQjc4RUJCMEQKUldRTnU0NjNZY1BYR3F5U2ZySFcxbmtVblAwT1BpVE55N1JFZEIxK0xydHdZQlg0dENUaTJmUFIK",
+      "endpoints": [
+        "https://github.com/WAPerera/Prompt-pad/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}
