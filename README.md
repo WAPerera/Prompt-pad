@@ -23,7 +23,7 @@ All data stays on your device.
 
 1. Open the [latest release](https://github.com/WAPerera/Prompt-pad/releases/latest).
 2. Download either installer (file names include the version, e.g.
-   `Prompt.Pad_1.1.1_x64-setup.exe`):
+   `Prompt.Pad_1.2.0_x64-setup.exe`):
    - the NSIS `.exe` setup file (recommended)
    - or the `.msi` package
 3. Run the installer. Administrator rights are not required.
@@ -52,6 +52,8 @@ To stay safe, only download installers from this repository's **Releases** page.
 
 - Search across quick prompts and folders as you type.
 - Create prompts either as quick prompts or inside a folder; create folders inline.
+- Move a quick prompt into a folder from its row menu, or star a prompt inside a folder
+  to keep it visible under Quick prompts too.
 - Edit titles and bodies with changes saved as you type.
 - Rename or delete prompts and folders from the row menu (`⋯` or right-click).
   Deleting a folder moves its prompts to Quick prompts so nothing is lost.
@@ -61,7 +63,8 @@ To stay safe, only download installers from this repository's **Releases** page.
   snapshot before an import replaces your data.
 - In-app updates from GitHub Releases, with a small notification bubble when a new
   version is found at startup.
-- Frameless window with a custom title bar and working minimize / close buttons.
+- Frameless, 20px rounded window with a custom title bar holding Settings and the
+  minimize / close controls.
 
 ## Build from source
 
@@ -127,8 +130,8 @@ wired up by the sidebar.
 ## Releasing
 
 ```powershell
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 The release workflow builds on `windows-latest` and creates a **draft** GitHub Release

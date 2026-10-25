@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { Sidebar } from "../src/components/Sidebar";
 import type { FolderEntry } from "../src/types";
@@ -34,11 +34,11 @@ function renderSidebar(overrides: Partial<ComponentProps<typeof Sidebar>> = {}) 
     onSelectFolder: vi.fn(),
     onRenamePrompt: vi.fn(),
     onDeletePrompt: vi.fn(),
+    onToggleQuick: vi.fn(),
+    onMovePromptToFolder: vi.fn(),
     onRenameFolder: vi.fn(),
     onDeleteFolder: vi.fn(),
     onMoveFolder,
-    settingsOpen: false,
-    onOpenSettings: vi.fn(),
     ...overrides,
   };
 
@@ -138,5 +138,41 @@ describe("Sidebar folder arrangement", () => {
     renderSidebar({ query: "a" });
 
     expect(folderRow("Alpha").getAttribute("draggable")).not.toBe("true");
+  });
+});
+
+describe("Sidebar quick prompts", () => {
+  it("stars a folder prompt as a quick prompt", () => {
+    const onToggleQuick = vi.fn();
+    renderSidebar({
+      onToggleQuick,
+      folders: [
+        {
+          folder: { id: "alpha", name: "Alpha" },
+          prompts: [{ id: "p1", folderId: "alpha", title: "Nested prompt", body: "" }],
+          expanded: true,
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByLabelText("Mark as quick prompt"));
+
+    expect(onToggleQuick).toHaveBeenCalledWith("p1");
+  });
+
+  it("moves a quick prompt into a folder", () => {
+    const onMovePromptToFolder = vi.fn();
+    renderSidebar({
+      onMovePromptToFolder,
+      quickPrompts: [{ id: "p1", folderId: null, title: "Loose prompt", body: "" }],
+    });
+
+    fireEvent.click(screen.getByLabelText("More options for Loose prompt"));
+
+    const menu = screen.getByRole("menu");
+    fireEvent.click(within(menu).getByText("Move to folder"));
+    fireEvent.click(within(menu).getByText("Alpha"));
+
+    expect(onMovePromptToFolder).toHaveBeenCalledWith("p1", "alpha");
   });
 });

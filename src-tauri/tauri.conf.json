@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Prompt Pad",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "identifier": "io.github.waperera.prompt-pad",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -21,7 +21,8 @@
         "center": true,
         "resizable": true,
         "decorations": false,
-        "shadow": false,
+        "transparent": true,
+        "shadow": true,
         "dragDropEnabled": false
       }
     ],

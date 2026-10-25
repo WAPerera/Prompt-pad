@@ -23,6 +23,12 @@
     user-select: none;
   }
 
+  /* The Tauri window is transparent so the 20px rounded app corners show through. */
+  html.tauri,
+  html.tauri body {
+    background-color: transparent !important;
+  }
+
   input,
   textarea {
     user-select: text;

@@ -18,7 +18,8 @@ export function isPrompt(value: unknown): value is Prompt {
     typeof prompt.id === "string" &&
     (prompt.folderId === null || typeof prompt.folderId === "string") &&
     typeof prompt.title === "string" &&
-    typeof prompt.body === "string"
+    typeof prompt.body === "string" &&
+    (prompt.quick === undefined || typeof prompt.quick === "boolean")
   );
 }
 

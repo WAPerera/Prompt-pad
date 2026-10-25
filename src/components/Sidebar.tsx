@@ -4,6 +4,7 @@ import type { Folder, FolderEntry, Prompt } from "../types";
 import { KOFI_URL, openExternal } from "../lib/external";
 import { cx } from "../lib/utils";
 import {
+  ChevronLeftIcon,
   ChevronRightIcon,
   CoffeeIcon,
   FolderIcon,
@@ -13,7 +14,7 @@ import {
   PlusIcon,
   PromptPadMark,
   SearchIcon,
-  SettingsIcon,
+  StarIcon,
   TrashIcon,
   ZapIcon,
 } from "./icons";
@@ -35,11 +36,11 @@ type SidebarProps = {
   onSelectFolder: (folder: Folder) => void;
   onRenamePrompt: (promptId: string, title: string) => void;
   onDeletePrompt: (promptId: string) => void;
+  onToggleQuick: (promptId: string) => void;
+  onMovePromptToFolder: (promptId: string, folderId: string) => void;
   onRenameFolder: (folderId: string, name: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onMoveFolder: (draggedId: string, targetId: string, before: boolean) => void;
-  settingsOpen: boolean;
-  onOpenSettings: () => void;
 };
 
 type RowTarget = { kind: "prompt" | "folder"; id: string };
@@ -63,11 +64,11 @@ export function Sidebar({
   onSelectFolder,
   onRenamePrompt,
   onDeletePrompt,
+  onToggleQuick,
+  onMovePromptToFolder,
   onRenameFolder,
   onDeleteFolder,
   onMoveFolder,
-  settingsOpen,
-  onOpenSettings,
 }: SidebarProps) {
   const [menuTarget, setMenuTarget] = useState<RowTarget | null>(null);
   const [renaming, setRenaming] = useState<RowTarget | null>(null);
@@ -76,6 +77,7 @@ export function Sidebar({
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
   const canReorder = query.trim().length === 0;
+  const folderList = folders.map((entry) => entry.folder);
 
   useEffect(() => {
     if (!menuTarget) return;
@@ -228,6 +230,11 @@ export function Sidebar({
               onDelete={() => {
                 setMenuTarget(null);
                 onDeletePrompt(prompt.id);
+              }}
+              moveFolders={folderList}
+              onMoveToFolder={(folderId) => {
+                setMenuTarget(null);
+                onMovePromptToFolder(prompt.id, folderId);
               }}
               onSelect={onSelectPrompt}
             />
@@ -412,6 +419,8 @@ export function Sidebar({
                           setMenuTarget(null);
                           onDeletePrompt(prompt.id);
                         }}
+                        quick={prompt.quick === true}
+                        onToggleQuick={() => onToggleQuick(prompt.id)}
                         onSelect={onSelectPrompt}
                       />
                     ))}
@@ -423,21 +432,7 @@ export function Sidebar({
         </div>
       </nav>
 
-      <footer className="shrink-0 space-y-px border-t border-zinc-800/70 p-2">
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          aria-current={settingsOpen ? "page" : undefined}
-          className={cx(
-            "flex h-8 w-full items-center gap-2 rounded-md px-2 text-[12px] transition",
-            settingsOpen
-              ? "bg-zinc-800/60 text-zinc-200"
-              : "text-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-200",
-          )}
-        >
-          <SettingsIcon className="h-3.5 w-3.5" />
-          Settings
-        </button>
+      <footer className="shrink-0 border-t border-zinc-800/70 p-2">
         <button
           type="button"
           onClick={() => void handleOpenCoffee()}
@@ -496,31 +491,88 @@ function SectionHeader({
   );
 }
 
-function RowMenu({ onRename, onDelete }: { onRename: () => void; onDelete: () => void }) {
+type RowMenuProps = {
+  onRename: () => void;
+  onDelete: () => void;
+  folders?: Folder[];
+  onMoveToFolder?: (folderId: string) => void;
+};
+
+function RowMenu({ onRename, onDelete, folders, onMoveToFolder }: RowMenuProps) {
+  const [view, setView] = useState<"main" | "folders">("main");
+  const canMove = Boolean(folders && onMoveToFolder);
+
   return (
     <div
       data-row-menu
       role="menu"
-      className="absolute right-1 top-full z-30 mt-1 w-36 overflow-hidden rounded-lg border border-zinc-700/70 bg-[#161619] p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.9)]"
+      className="absolute right-1 top-full z-30 mt-1 w-44 overflow-hidden rounded-lg border border-zinc-700/70 bg-[#161619] p-1 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.9)]"
     >
-      <button
-        type="button"
-        role="menuitem"
-        onClick={onRename}
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
-      >
-        <PencilIcon className="h-3.5 w-3.5 text-zinc-500" />
-        Rename
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        onClick={onDelete}
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
-      >
-        <TrashIcon className="h-3.5 w-3.5" />
-        Delete
-      </button>
+      {view === "folders" ? (
+        <>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => setView("main")}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100"
+          >
+            <ChevronLeftIcon className="h-3.5 w-3.5 text-zinc-500" />
+            Move to folder
+          </button>
+          <div className="my-1 h-px bg-zinc-800" />
+          <div className="max-h-44 overflow-y-auto">
+            {folders && folders.length > 0 ? (
+              folders.map((folder) => (
+                <button
+                  key={folder.id}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => onMoveToFolder?.(folder.id)}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+                >
+                  <FolderIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                  <span className="truncate">{folder.name}</span>
+                </button>
+              ))
+            ) : (
+              <p className="px-2 py-1.5 text-[12px] text-zinc-500">No folders yet</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onRename}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+          >
+            <PencilIcon className="h-3.5 w-3.5 text-zinc-500" />
+            Rename
+          </button>
+          {canMove ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => setView("folders")}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+            >
+              <FolderIcon className="h-3.5 w-3.5 text-zinc-500" />
+              Move to folder
+              <ChevronRightIcon className="ml-auto h-3 w-3 text-zinc-600" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onDelete}
+            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
+          >
+            <TrashIcon className="h-3.5 w-3.5" />
+            Delete
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -539,6 +591,10 @@ type PromptRowProps = {
   onStartRename: () => void;
   onDelete: () => void;
   onSelect: (prompt: Prompt) => void;
+  quick?: boolean;
+  onToggleQuick?: () => void;
+  moveFolders?: Folder[];
+  onMoveToFolder?: (folderId: string) => void;
 };
 
 function PromptRow({
@@ -555,6 +611,10 @@ function PromptRow({
   onStartRename,
   onDelete,
   onSelect,
+  quick = false,
+  onToggleQuick,
+  moveFolders,
+  onMoveToFolder,
 }: PromptRowProps) {
   if (renaming) {
     return (
@@ -574,6 +634,8 @@ function PromptRow({
     );
   }
 
+  const showQuickToggle = nested && onToggleQuick;
+
   return (
     <div className="group relative">
       <button
@@ -584,15 +646,42 @@ function PromptRow({
           if (!menuOpen) onToggleMenu();
         }}
         className={cx(
-          "flex w-full items-center rounded-md py-1.5 pr-8 text-left text-[13px] transition",
+          "flex w-full items-center rounded-md py-1.5 text-left text-[13px] transition",
+          showQuickToggle ? "pr-16" : "pr-8",
           nested ? "pl-9" : "pl-6",
           selected
             ? "bg-zinc-800/80 text-zinc-100"
             : "text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200",
         )}
       >
+        {!nested && prompt.folderId ? (
+          <StarIcon
+            className="mr-1.5 h-3 w-3 shrink-0 text-amber-300/80"
+            fill="currentColor"
+          />
+        ) : null}
         <span className="truncate">{prompt.title || "Untitled prompt"}</span>
       </button>
+
+      {showQuickToggle ? (
+        <button
+          type="button"
+          onClick={onToggleQuick}
+          aria-label={
+            quick ? "Remove from quick prompts" : "Mark as quick prompt"
+          }
+          aria-pressed={quick}
+          title={quick ? "Remove from quick prompts" : "Mark as quick prompt"}
+          className={cx(
+            "absolute right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded transition",
+            quick
+              ? "text-amber-300 hover:bg-zinc-700/70 hover:text-amber-200"
+              : "text-zinc-500 opacity-0 hover:bg-zinc-700/70 hover:text-zinc-200 focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100",
+          )}
+        >
+          <StarIcon className="h-3.5 w-3.5" fill={quick ? "currentColor" : "none"} />
+        </button>
+      ) : null}
 
       <button
         type="button"
@@ -606,7 +695,14 @@ function PromptRow({
         <MoreHorizontalIcon className="h-3.5 w-3.5" />
       </button>
 
-      {menuOpen ? <RowMenu onRename={onStartRename} onDelete={onDelete} /> : null}
+      {menuOpen ? (
+        <RowMenu
+          onRename={onStartRename}
+          onDelete={onDelete}
+          folders={moveFolders}
+          onMoveToFolder={onMoveToFolder}
+        />
+      ) : null}
     </div>
   );
 }

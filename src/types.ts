@@ -8,6 +8,8 @@ export type Prompt = {
   folderId: string | null;
   title: string;
   body: string;
+  /** Starred folder prompts are also listed under Quick prompts. */
+  quick?: boolean;
 };
 
 export type PromptPadData = {
