@@ -23,7 +23,7 @@ All data stays on your device.
 
 1. Open the [latest release](https://github.com/WAPerera/Prompt-pad/releases/latest).
 2. Download either installer (file names include the version, e.g.
-   `Prompt.Pad_1.2.1_x64-setup.exe`):
+   `Prompt.Pad_1.3.0_x64-setup.exe`):
    - the NSIS `.exe` setup file (recommended)
    - or the `.msi` package
 3. Run the installer. Administrator rights are not required.
@@ -65,6 +65,9 @@ To stay safe, only download installers from this repository's **Releases** page.
   version is found at startup.
 - Frameless, 20px rounded window with a custom title bar holding Settings and the
   minimize / close controls.
+- Minimize turns the window into a small always-on-top floating panel with your quick
+  prompts: drag its header to move it, click a prompt to copy it, and it fades to 60%
+  opacity while idle so it stays out of the way.
 
 ## Build from source
 
@@ -130,8 +133,8 @@ wired up by the sidebar.
 ## Releasing
 
 ```powershell
-git tag v1.2.1
-git push origin v1.2.1
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
 The release workflow builds on `windows-latest` and creates a **draft** GitHub Release

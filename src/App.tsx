@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { SettingsIcon } from "./components/icons";
+import { MiniPanel } from "./components/MiniPanel";
 import { UpdateBubble } from "./components/UpdateBubble";
 import { WindowControls } from "./components/WindowControls";
 import { EmptyState } from "./components/views/EmptyState";
@@ -15,6 +16,7 @@ import { isQuickPrompt } from "./lib/prompts";
 import { loadData, saveData } from "./lib/storage";
 import { useUpdater } from "./lib/updates";
 import { createId, cx } from "./lib/utils";
+import { collapseToPanel, restoreFromPanel } from "./lib/window";
 import type { Folder, FolderEntry, Prompt, PromptPadData } from "./types";
 
 type Draft = {
@@ -31,6 +33,7 @@ export default function App() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [panelMode, setPanelMode] = useState(false);
   const updater = useUpdater();
 
   useEffect(() => {
@@ -292,7 +295,28 @@ export default function App() {
     resetDraft();
   }
 
-  return (
+  async function handleMinimizeToPanel() {
+    setPanelMode(true);
+    try {
+      await collapseToPanel();
+    } catch {
+      // If the window cannot be reshaped, stay in the full view.
+      setPanelMode(false);
+    }
+  }
+
+  async function handleExpandFromPanel() {
+    setPanelMode(false);
+    try {
+      await restoreFromPanel();
+    } catch {
+      // The full view is already rendered; geometry will just stay as-is.
+    }
+  }
+
+  return panelMode ? (
+    <MiniPanel prompts={quickPrompts} onExpand={() => void handleExpandFromPanel()} />
+  ) : (
     <div className="flex h-screen w-screen overflow-hidden rounded-[20px] bg-[#0d0d0f] font-sans text-zinc-300 antialiased selection:bg-teal-400/25 selection:text-white">
       <Sidebar
         query={query}
@@ -341,7 +365,7 @@ export default function App() {
             <SettingsIcon className="h-3.5 w-3.5" />
           </button>
           <div className="mx-1 h-4 w-px bg-zinc-800" />
-          <WindowControls />
+          <WindowControls onMinimize={() => void handleMinimizeToPanel()} />
         </div>
 
         <div className="min-h-0 flex-1">
